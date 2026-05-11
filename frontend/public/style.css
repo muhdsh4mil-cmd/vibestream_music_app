@@ -2958,3 +2958,206 @@ button {
 .user-logout-header-btn:active {
   transform: scale(0.96);
 }
+
+/* ==========================================================================
+   Mobile & Responsive Layout System (Premium Adaptive Enhancements)
+   ========================================================================== */
+
+/* 1. Mobile Menu Hamburger Button Default (Hidden on Desktop) */
+.mobile-menu-btn {
+  display: none;
+}
+
+/* 2. Responsive Breakpoint for Mobile and Tablet (<= 768px) */
+@media (max-width: 768px) {
+  /* Layout Adaptation */
+  .app-layout {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: calc(100vh - 120px) 120px !important;
+    overflow: hidden;
+  }
+
+  /* Overlay Dim Backdrop */
+  .sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(3, 3, 5, 0.7);
+    backdrop-filter: blur(8px);
+    z-index: 999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+  }
+  .sidebar-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Floating Overlay Sidebar Panel */
+  .sidebar-panel {
+    position: fixed;
+    top: 0;
+    left: -280px;
+    width: 280px;
+    height: calc(100vh - 120px);
+    z-index: 1000;
+    background: rgba(13, 12, 21, 0.98) !important;
+    backdrop-filter: blur(25px);
+    box-shadow: 15px 0 35px rgba(0, 0, 0, 0.85);
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    border-right: 1px solid var(--border-glass-active);
+  }
+  .sidebar-panel.mobile-active {
+    transform: translateX(280px);
+  }
+
+  /* Active Header Mobile Menu Button styling */
+  .mobile-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: var(--radius-md);
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-glass);
+    color: var(--text-main);
+    font-size: 18px;
+    transition: var(--transition-fast);
+    margin-right: 12px;
+    outline: none;
+    cursor: pointer;
+  }
+  .mobile-menu-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: var(--border-glass-hover);
+    box-shadow: 0 0 10px rgba(142, 82, 245, 0.2);
+  }
+  .mobile-menu-btn:active {
+    transform: scale(0.94);
+  }
+
+  /* Header adjustments */
+  .header-bar {
+    padding: 0 16px !important;
+  }
+  .nav-arrows {
+    display: none !important; /* Save horizontal space */
+  }
+  .search-form {
+    flex-grow: 1;
+    max-width: 100% !important;
+  }
+  .user-profile-btn span {
+    display: none !important; /* Hide user name string on small widths */
+  }
+  .user-profile-btn {
+    padding: 4px !important;
+  }
+
+  /* Content area adjustment */
+  .view-content {
+    padding: 20px 16px 40px 16px !important;
+    gap: 25px !important;
+  }
+
+  /* Now Playing Hero Dashboard Card Mobile Stack */
+  .hero-player-card {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+    padding: 20px !important;
+    text-align: center;
+    border-radius: var(--radius-md) !important;
+  }
+  .hero-artwork-area {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 5px;
+  }
+  .hero-art-wrapper {
+    width: 180px !important;
+    height: 180px !important;
+  }
+  .hero-content-area {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+  }
+  .hero-badge-row {
+    justify-content: center !important;
+  }
+  .hero-song-title {
+    font-size: 22px !important;
+  }
+  .hero-actions {
+    justify-content: center !important;
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 10px !important;
+  }
+
+  /* Grids and scaling */
+  .recent-grid, .podcast-grid, .playlist-grid, .search-results-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important;
+    gap: 12px !important;
+  }
+
+  /* Bottom Playback Bar mobile styling */
+  .playback-bar-panel {
+    grid-template-columns: 1fr !important;
+    height: 120px !important;
+    padding: 10px 16px !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 6px;
+    background: rgba(13, 12, 21, 0.98) !important;
+    border-top: 1px solid var(--border-glass-active);
+  }
+  .track-details {
+    width: 100% !important;
+    justify-content: flex-start;
+    gap: 12px;
+  }
+  .track-metadata {
+    max-width: calc(100% - 100px);
+  }
+  .player-controls {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .control-actions {
+    margin-bottom: 2px;
+    gap: 18px !important;
+  }
+  .playback-timeline {
+    width: 100% !important;
+  }
+  
+  /* Hide auxiliary volume controls on mobile to maximize music controls area */
+  .aux-controls {
+    display: none !important;
+  }
+}
+
+/* 3. Small Mobile Breakpoint Adaptations (<= 480px) */
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 30px 20px !important;
+    width: 90vw !important;
+    margin: 15px auto;
+  }
+  .auth-title {
+    font-size: 22px !important;
+  }
+  .section-title-text {
+    font-size: 18px !important;
+  }
+  .welcome-title-row h1 {
+    font-size: 20px !important;
+  }
+}
+

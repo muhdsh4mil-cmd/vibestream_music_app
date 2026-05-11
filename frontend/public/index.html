@@ -129,6 +129,8 @@
   </div>
 
   <div class="app-layout" style="display: none;">
+    <!-- Dim overlay backdrop when sidebar is active on mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <!-- Left Navigation Sidebar -->
     <aside class="sidebar-panel">
@@ -181,6 +183,11 @@
       <!-- Sticky Header -->
       <header class="header-bar">
         <div class="header-left">
+          <!-- Mobile Menu Toggle Button -->
+          <button class="mobile-menu-btn" id="btnMobileMenu" title="Toggle Navigation Menu">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+
           <div class="nav-arrows">
             <button class="arrow-btn" disabled><i class="fa-solid fa-chevron-left"></i></button>
             <button class="arrow-btn" disabled><i class="fa-solid fa-chevron-right"></i></button>
@@ -764,6 +771,39 @@
 
     <!-- Load Main App Controller Script (which asynchronously handles YouTube API load) -->
     <script src="script.js?v=admin-v4"></script>
+    
+    <!-- Mobile Interactive Controls Script -->
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const btnMobileMenu = document.getElementById('btnMobileMenu');
+        const sidebarPanel = document.querySelector('.sidebar-panel');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+        if (btnMobileMenu && sidebarPanel && sidebarOverlay) {
+          const toggleSidebar = () => {
+            sidebarPanel.classList.toggle('mobile-active');
+            sidebarOverlay.classList.toggle('active');
+          };
+
+          const closeSidebar = () => {
+            sidebarPanel.classList.remove('mobile-active');
+            sidebarOverlay.classList.remove('active');
+          };
+
+          btnMobileMenu.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleSidebar();
+          });
+
+          sidebarOverlay.addEventListener('click', closeSidebar);
+
+          // Close sidebar when clicking any navigation button on mobile
+          sidebarPanel.querySelectorAll('.nav-btn, #btnLogoHome').forEach(btn => {
+            btn.addEventListener('click', closeSidebar);
+          });
+        }
+      });
+    </script>
 </body>
 
 </html>
