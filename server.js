@@ -12,11 +12,15 @@ const PORT = process.env.PORT || 3000;
 // Falls back to localhost for local development.
 const allowedOrigin = process.env.ALLOWED_ORIGIN || 'http://localhost:3000';
 
+const localOrigins = ['http://localhost:3000', 'http://127.0.0.1:3000'];
+
 app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (same-origin, mobile apps, Postman, admin portal)
     if (!origin) return callback(null, true);
-    if (origin === allowedOrigin) return callback(null, true);
+    if (origin === allowedOrigin || localOrigins.includes(origin) || origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
+      return callback(null, true);
+    }
     return callback(new Error(`CORS: Origin '${origin}' is not allowed.`), false);
   },
   methods: ['GET', 'POST', 'DELETE'],
