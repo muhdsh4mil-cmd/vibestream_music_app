@@ -389,10 +389,10 @@ function saveArtistsToCache() {
 
 function updateLibrarySummaryCounters() {
   if (dom.libLikedCount) dom.libLikedCount.innerText = likedTrackObjects.length;
-  if (dom.libPlaylistsCount) dom.libPlaylistsCount.innerText = 4 + customPlaylists.length; // 4 default + custom ones
+  if (dom.libPlaylistsCount) dom.libPlaylistsCount.innerText = customPlaylists.length;
   if (dom.libCardArtists) {
     const label = dom.libCardArtists.querySelector('.lib-count');
-    if (label) label.innerText = 5 + customArtists.length; // 5 default verified + custom followed ones
+    if (label) label.innerText = customArtists.length;
   }
   if (dom.likedSongsCountLabel) dom.likedSongsCountLabel.innerText = `${likedTrackObjects.length} song${likedTrackObjects.length === 1 ? '' : 's'}`;
 }
@@ -1744,17 +1744,7 @@ function renderArtists() {
   grid.innerHTML = '';
   grid.appendChild(staticAddCard);
   
-  // Default Curated Verified Artists
-  const defaultArtists = [
-    { name: 'A.R. Rahman', query: 'A.R. Rahman', listeners: '14.8M Monthly Listeners', thumbnail: 'https://images.unsplash.com/photo-1513829096999-497860229414?auto=format&fit=crop&w=300&q=80' }
-  ];
-  
-  // 1. Render default verified artists
-  defaultArtists.forEach(artist => {
-    grid.appendChild(createArtistCardDOM(artist, true));
-  });
-  
-  // 2. Render user custom followed artists
+  // Render user custom followed artists
   customArtists.forEach(artist => {
     grid.appendChild(createArtistCardDOM(artist, false));
   });
