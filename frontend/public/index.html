@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vibestream.online</title>
+
+  <!-- Modern Typography from Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Figtree:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <!-- FontAwesome Icons for Premium Interface Elements -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+  <!-- Core Stylesheet -->
+  <link rel="stylesheet" href="style.css?v=admin-v4">
+</head>
+
+<body>
+
+  <!-- Swipe feedback element for tactile mobile interactions -->
+  <div class="swipe-feedback" id="swipeFeedback">
+    <i class="fa-solid fa-angles-left"></i>
+  </div>
+
+  <!-- Premium Registration & Login Gate Overlay Container -->
+  <div class="user-access-container" id="userAccessContainer">
+
+    <!-- LOGIN CARD VIEW -->
+    <div class="auth-card" id="authLoginCard">
+      <div class="auth-logo-section">
+        <i class="fa-solid fa-music auth-logo-icon"></i>
+        <span class="auth-logo-text">Vibestream</span>
+      </div>
+      <h1 class="auth-title">Welcome back </h1>
+      <p class="auth-subtitle">Log in to continue listening</p>
+
+      <!-- Error Alert Banner -->
+      <div class="auth-error-banner" id="loginErrorBanner" style="display: none;"></div>
+
+      <div class="auth-form-group">
+        <label class="auth-label">Email or Username</label>
+        <div class="auth-input-wrapper">
+          <i class="fa-regular fa-user auth-input-icon"></i>
+          <input type="text" id="loginEmail" class="auth-input" placeholder="Enter your email or username"
+            autocomplete="off">
+        </div>
+      </div>
+
+      <div class="auth-form-group last-group">
+        <label class="auth-label">Password</label>
+        <div class="auth-input-wrapper">
+          <i class="fa-solid fa-lock auth-input-icon"></i>
+          <input type="password" id="loginPassword" class="auth-input" placeholder="Enter your password"
+            autocomplete="off">
+          <i class="fa-regular fa-eye auth-input-toggle" id="toggleLoginPassword"></i>
+        </div>
+      </div>
+
+      <button class="auth-btn" id="btnLoginSubmit">
+        Log In <i class="fa-solid fa-arrow-right"></i>
+      </button>
+
+      <p class="auth-footer-text">Don’t have an account? <span class="auth-switch-link" id="linkToSignup">Sign up</span>
+      </p>
+    </div>
+
+    <!-- SIGNUP CARD VIEW (Hidden by Default) -->
+    <div class="auth-card" id="authSignupCard" style="display: none;">
+      <div class="auth-logo-section">
+        <i class="fa-solid fa-music auth-logo-icon"></i>
+        <span class="auth-logo-text">Melody</span>
+      </div>
+      <h1 class="auth-title">Create your account</h1>
+      <p class="auth-subtitle">Sign up to start your music journey</p>
+
+      <!-- Error Alert Banner -->
+      <div class="auth-error-banner" id="signupErrorBanner" style="display: none;"></div>
+
+      <div class="auth-form-group">
+        <label class="auth-label">Full Name</label>
+        <div class="auth-input-wrapper">
+          <i class="fa-regular fa-user auth-input-icon"></i>
+          <input type="text" id="signupName" class="auth-input" placeholder="Enter your full name" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="auth-form-group">
+        <label class="auth-label">Email</label>
+        <div class="auth-input-wrapper">
+          <i class="fa-regular fa-envelope auth-input-icon"></i>
+          <input type="email" id="signupEmail" class="auth-input" placeholder="Enter your email" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="auth-form-group">
+        <label class="auth-label">Password</label>
+        <div class="auth-input-wrapper">
+          <i class="fa-solid fa-lock auth-input-icon"></i>
+          <input type="password" id="signupPassword" class="auth-input" placeholder="Create a password"
+            autocomplete="off">
+          <i class="fa-regular fa-eye auth-input-toggle" id="toggleSignupPassword"></i>
+        </div>
+        <div class="auth-hint">At least 8 characters with a number and symbol</div>
+      </div>
+
+      <div class="auth-form-group last-group">
+        <label class="auth-label">Confirm Password</label>
+        <div class="auth-input-wrapper">
+          <i class="fa-solid fa-lock auth-input-icon"></i>
+          <input type="password" id="signupConfirmPassword" class="auth-input" placeholder="Confirm your password"
+            autocomplete="off">
+          <i class="fa-regular fa-eye auth-input-toggle" id="toggleSignupConfirmPassword"></i>
+        </div>
+      </div>
+
+      <button class="auth-btn" id="btnSignupSubmit">
+        Sign Up <i class="fa-solid fa-arrow-right"></i>
+      </button>
+
+      <p class="auth-footer-text">Already have an account? <span class="auth-switch-link" id="linkToLogin">Log in</span>
+      </p>
+    </div>
+
+  </div>
+
+  <div class="app-layout" style="display: none;">
+
+    <!-- Left Navigation Sidebar -->
+    <aside class="sidebar-panel">
+      <!-- Brand Logo -->
+      <div class="brand-logo" id="btnLogoHome">
+        <i class="fa-solid fa-music brand-icon"></i>
+        <span class="brand-name">Melody</span>
+      </div>
+
+      <!-- Core Navigation -->
+      <nav class="nav-links">
+        <button class="nav-btn active" id="btnHome">
+          <i class="fa-solid fa-house"></i>
+          <span>Home</span>
+        </button>
+        <button class="nav-btn" id="btnSearchFocus">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <span>Search</span>
+        </button>
+        <button class="nav-btn" id="btnYourLibrary">
+          <i class="fa-regular fa-folder-open"></i>
+          <span>Your Library</span>
+        </button>
+        <button class="nav-btn" id="btnPlaylists">
+          <i class="fa-solid fa-list-ul"></i>
+          <span>Playlists</span>
+        </button>
+        <button class="nav-btn" id="btnLikedSongs">
+          <i class="fa-regular fa-heart"></i>
+          <span>Liked Songs</span>
+        </button>
+        <button class="nav-btn" id="btnArtists">
+          <i class="fa-regular fa-user"></i>
+          <span>Artists</span>
+        </button>
+        <button class="nav-btn" id="btnPodcasts">
+          <i class="fa-solid fa-tower-broadcast"></i>
+          <span>Podcasts</span>
+        </button>
+
+
+
+        <!-- Maintain compatibility with script.js cache variables -->
+        <button id="btnNavQueue" style="display: none;"></button>
+      </nav>
+    </aside>
+
+    <!-- Main Content Panel -->
+    <main class="main-panel">
+      <!-- Sticky Header -->
+      <header class="header-bar">
+        <div class="header-left">
+          <div class="nav-arrows">
+            <button class="arrow-btn" disabled><i class="fa-solid fa-chevron-left"></i></button>
+            <button class="arrow-btn" disabled><i class="fa-solid fa-chevron-right"></i></button>
+          </div>
+
+          <!-- Search Bar Container -->
+          <form class="search-form" id="searchForm" style="position: relative;">
+            <i class="fa-solid fa-magnifying-glass search-bar-icon"></i>
+            <input type="text" id="searchInput" placeholder="Search for songs, artists, albums..." autocomplete="off">
+            <button type="button" class="clear-search-btn" id="btnClearSearch">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="search-suggestions-dropdown" id="searchSuggestions"></div>
+          </form>
+        </div>
+
+        <div class="header-right">
+
+          <!-- User Profile Section -->
+          <div class="user-profile-btn">
+            <img src="avatar.jpg" alt="M.Shamil" class="user-avatar" id="userAvatarTrigger" style="cursor: pointer;">
+            <span class="user-name">M.Shamil</span>
+            <i class="fa-solid fa-chevron-down"></i>
+          </div>
+
+          <!-- Global Logout Button -->
+          <button class="user-logout-header-btn" id="btnHeaderLogout" title="Log Out from Session"
+            onclick="logoutCurrentUserSession()">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>Logout</span>
+          </button>
+
+          <!-- Hidden compatibility elements to prevent script.js crash -->
+          <div id="apiBadge" style="display: none;"></div>
+        </div>
+      </header>
+
+      <!-- Scrollable Workspace content -->
+      <div class="view-content" id="viewContent">
+
+        <!-- =================== HOME LANDING VIEW =================== -->
+        <div id="homeLandingView">
+
+          <!-- Now Playing Hero Dashboard Card -->
+          <section class="hero-player-card" id="heroPlayerCard">
+            <!-- Left side artwork with neon ring -->
+            <div class="hero-artwork-area">
+              <div class="hero-art-wrapper">
+                <div class="hero-neon-circle"></div>
+                <img src="https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?auto=format&fit=crop&w=400&q=80"
+                  alt="Cover" id="heroArt" class="hero-art-image">
+
+                <!-- Small equalizing music bars in thumbnail corner -->
+                <div class="hero-sound-indicator">
+                  <div class="hero-music-bars">
+                    <div class="hero-bar"></div>
+                    <div class="hero-bar"></div>
+                    <div class="hero-bar"></div>
+                    <div class="hero-bar"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right side song metadata, waveform & action buttons -->
+            <div class="hero-content-area">
+              <div class="hero-badge-row">
+                <span class="now-playing-badge">Now Playing</span>
+                <div class="hero-options-row">
+                  <button class="hero-fav-btn" id="heroHeart" title="Add to Library">
+                    <i class="fa-regular fa-heart"></i>
+                  </button>
+                  <button class="hero-menu-btn" title="More Options">
+                    <i class="fa-solid fa-ellipsis"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Title and Verified Artist -->
+              <div class="hero-metadata">
+                <h1 class="hero-title" id="heroTitle">Dreamscape</h1>
+                <div class="hero-artist-container">
+                  <span class="hero-artist" id="heroArtist">Eclipse Twins</span>
+                  <span class="hero-verified-badge" title="Verified Artist"><i
+                      class="fa-solid fa-circle-check"></i></span>
+                </div>
+              </div>
+
+              <!-- Animated Waveform Visualizer -->
+              <div class="hero-wave-visualizer" id="heroWaveform">
+                <!-- Render 36 bars representing the stereo waveform -->
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+              </div>
+
+              <!-- Progress Timeline Slider -->
+              <div class="hero-timeline">
+                <span class="timeline-time" id="heroTimeCurrent">1:32</span>
+                <div class="slider-container" id="heroTimelineContainer">
+                  <div class="slider-fill" id="heroTimelineFill" style="width: 40%;"></div>
+                  <div class="slider-handle" id="heroTimelineHandle" style="left: 40%;"></div>
+                </div>
+                <span class="timeline-time" id="heroTimeTotal">3:48</span>
+              </div>
+
+              <!-- Media Control Buttons inside Hero -->
+              <div class="hero-controls">
+                <button class="hero-btn" id="heroShuffle" title="Shuffle"><i class="fa-solid fa-shuffle"></i></button>
+                <button class="hero-btn" id="heroPrev" title="Previous"><i
+                    class="fa-solid fa-backward-step"></i></button>
+                <button class="hero-play-btn-large" id="heroPlayPause" title="Play/Pause">
+                  <i class="fa-solid fa-pause"></i>
+                </button>
+                <button class="hero-btn" id="heroNext" title="Next"><i class="fa-solid fa-forward-step"></i></button>
+                <button class="hero-btn" id="heroRepeat" title="Repeat"><i class="fa-solid fa-repeat"></i></button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Recently Played Carousel Section -->
+          <section class="section-container">
+            <div class="section-title-row">
+              <h2 class="section-title-text">Recently Played</h2>
+            </div>
+
+            <div class="recently-played-grid" id="recentlyPlayedGrid">
+              <!-- Mapped mock tracks will play on click -->
+              <div class="square-music-card" data-card-index="0">
+                <div class="square-art-container">
+                  <img
+                    src="https://images.unsplash.com/photo-1515462277126-270d878326e5?auto=format&fit=crop&w=400&q=80"
+                    alt="Midnight Drive" class="square-art-img">
+                  <button class="square-play-btn"><i class="fa-solid fa-play"></i></button>
+                </div>
+                <div class="square-metadata">
+                  <span class="square-title">Midnight Drive</span>
+                  <span class="square-artist">Album • The Nightfall</span>
+                </div>
+              </div>
+
+              <div class="square-music-card" data-card-index="1">
+                <div class="square-art-container">
+                  <img
+                    src="https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=400&q=80"
+                    alt="Solar Flare" class="square-art-img">
+                  <button class="square-play-btn"><i class="fa-solid fa-play"></i></button>
+                </div>
+                <div class="square-metadata">
+                  <span class="square-title">Solar Flare</span>
+                  <span class="square-artist">Single • Aurora</span>
+                </div>
+              </div>
+
+              <div class="square-music-card" data-card-index="2">
+                <div class="square-art-container">
+                  <img
+                    src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=400&q=80"
+                    alt="Lost in Echoes" class="square-art-img">
+                  <button class="square-play-btn"><i class="fa-solid fa-play"></i></button>
+                </div>
+                <div class="square-metadata">
+                  <span class="square-title">Lost in Echoes</span>
+                  <span class="square-artist">Album • Echo Wave</span>
+                </div>
+              </div>
+
+              <div class="square-music-card" data-card-index="3">
+                <div class="square-art-container">
+                  <img
+                    src="https://images.unsplash.com/photo-1513829096999-497860229414?auto=format&fit=crop&w=400&q=80"
+                    alt="Chillhop Lounge" class="square-art-img">
+                  <button class="square-play-btn"><i class="fa-solid fa-play"></i></button>
+                </div>
+                <div class="square-metadata">
+                  <span class="square-title">Chillhop Lounge</span>
+                  <span class="square-artist">Playlist • Melody</span>
+                </div>
+              </div>
+
+              <div class="square-music-card" data-card-index="4">
+                <div class="square-art-container">
+                  <img
+                    src="https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=400&q=80"
+                    alt="Ocean Eyes" class="square-art-img">
+                  <button class="square-play-btn"><i class="fa-solid fa-play"></i></button>
+                </div>
+                <div class="square-metadata">
+                  <span class="square-title">Ocean Eyes</span>
+                  <span class="square-artist">Single • Azure Waves</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+        </div>
+
+        <!-- =================== SEARCH RESULTS VIEW =================== -->
+        <div id="searchResultsView" style="display: none;">
+          <div class="section-title-row">
+            <h2 class="section-title-text" id="searchResultsTitle">Popular Releases</h2>
+            <div class="search-indicator" id="searchIndicator">
+              Showing matches for "<span id="activeQueryText">Trending</span>"
+            </div>
+          </div>
+
+          <!-- Loading Shimmer State (Skeletons) -->
+          <div class="loading-shimmer-grid" id="loadingShimmer" style="display: none;">
+            <div class="skeleton-card">
+              <div class="skeleton-image"></div>
+              <div class="skeleton-line-long"></div>
+              <div class="skeleton-line-short"></div>
+            </div>
+            <div class="skeleton-card">
+              <div class="skeleton-image"></div>
+              <div class="skeleton-line-long"></div>
+              <div class="skeleton-line-short"></div>
+            </div>
+            <div class="skeleton-card">
+              <div class="skeleton-image"></div>
+              <div class="skeleton-line-long"></div>
+              <div class="skeleton-line-short"></div>
+            </div>
+            <div class="skeleton-card">
+              <div class="skeleton-image"></div>
+              <div class="skeleton-line-long"></div>
+              <div class="skeleton-line-short"></div>
+            </div>
+            <div class="skeleton-card">
+              <div class="skeleton-image"></div>
+              <div class="skeleton-line-long"></div>
+              <div class="skeleton-line-short"></div>
+            </div>
+            <div class="skeleton-card">
+              <div class="skeleton-image"></div>
+              <div class="skeleton-line-long"></div>
+              <div class="skeleton-line-short"></div>
+            </div>
+          </div>
+
+          <!-- Empty Search State -->
+          <div class="empty-state-container" id="emptyState" style="display: none;">
+            <div class="empty-icon-wrapper">
+              <i class="fa-solid fa-compact-disc empty-disc-spin"></i>
+            </div>
+            <h3>Discover your next vibe</h3>
+            <p>Search for artists, songs, or genres in the search bar above to generate a new queue.</p>
+          </div>
+
+          <!-- Error / Server Offline State -->
+          <div class="error-state-container" id="errorState" style="display: none;">
+            <div class="error-icon-wrapper"><i class="fa-solid fa-circle-exclamation"></i></div>
+            <h3>Unable to fetch music</h3>
+            <p id="errorDetails">The server appears offline, or the API returned an invalid response. Retrying
+              shortly...</p>
+            <button class="retry-btn" id="btnErrorRetry">Try Again</button>
+          </div>
+
+          <!-- Songs Cards Grid populated programmatically by JS -->
+          <div class="songs-grid" id="songsGrid"></div>
+        </div>
+
+        <!-- =================== YOUR LIBRARY DASHBOARD VIEW =================== -->
+        <div id="libraryView" style="display: none;">
+          <div class="section-title-row" style="margin-bottom: 25px;">
+            <h2 class="section-title-text">Your Library</h2>
+          </div>
+          <div class="library-summary-row">
+            <div class="library-card liked-widget" id="libCardLiked">
+              <div class="library-card-left">
+                <span class="lib-count" id="libLikedCount">0</span>
+                <span class="lib-label">Liked Songs</span>
+              </div>
+              <div class="library-card-icon"><i class="fa-solid fa-heart"></i></div>
+            </div>
+
+            <div class="library-card" id="libCardPlaylists">
+              <div class="library-card-left">
+                <span class="lib-count" id="libPlaylistsCount">4</span>
+                <span class="lib-label">Playlists</span>
+              </div>
+              <div class="library-card-icon"><i class="fa-solid fa-list-ul"></i></div>
+            </div>
+
+            <div class="library-card" id="libCardArtists">
+              <div class="library-card-left">
+                <span class="lib-count">5</span>
+                <span class="lib-label">Artists</span>
+              </div>
+              <div class="library-card-icon"><i class="fa-regular fa-user"></i></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- =================== PLAYLISTS VIEW =================== -->
+        <div id="playlistsView" style="display: none;">
+          <div class="section-title-row" style="margin-bottom: 25px;">
+            <h2 class="section-title-text">Your Playlists</h2>
+          </div>
+          <div class="playlist-grid" id="playlistsGrid">
+            <!-- Create Playlist Card -->
+            <div class="create-playlist-card" id="btnCreatePlaylist">
+              <div class="create-plus-icon"><i class="fa-solid fa-plus"></i></div>
+              <span style="font-size: 14px; font-weight: 700;">Create Playlist</span>
+              <span style="font-size: 11px; color: var(--text-sub);">Create custom mixtapes</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- =================== LIKED SONGS VIEW =================== -->
+        <div id="likedSongsView" style="display: none;">
+          <div class="custom-view-header">
+            <div class="header-icon-box">
+              <i class="fa-solid fa-heart pulse-heart-icon"></i>
+            </div>
+            <div class="header-text-details">
+              <span class="header-subtitle">Playlist</span>
+              <h1 class="header-title-text">Liked Songs</h1>
+              <div class="header-meta-row">
+                <span style="color: var(--text-main); font-weight: 700;">Arjun Dev</span>
+                <div class="header-meta-bullet"></div>
+                <span id="likedSongsCountLabel">0 songs</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top: 30px;">
+            <div class="songs-table-container">
+              <table class="songs-table">
+                <thead>
+                  <tr>
+                    <th class="col-idx">#</th>
+                    <th class="col-play">Play</th>
+                    <th>Title</th>
+                    <th>Artist / Album</th>
+                    <th style="text-align: right; padding-right: 35px;">Unlike</th>
+                  </tr>
+                </thead>
+                <tbody id="likedSongsListContainer">
+                  <!-- Dynamic rows from script.js -->
+                </tbody>
+              </table>
+              <div class="table-empty-state" id="likedSongsEmptyState" style="display: none;">
+                <i class="fa-regular fa-heart"></i>
+                <h3>Your heart-list is empty</h3>
+                <p style="color: var(--text-sub); font-size: 13px;">Save your favorite tracks on the Homepage or in
+                  Search results to see them listed here.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- =================== ARTISTS VIEW =================== -->
+        <div id="artistsView" style="display: none;">
+          <div class="section-title-row" style="margin-bottom: 25px;">
+            <h2 class="section-title-text">Artists</h2>
+          </div>
+          <div class="artist-grid" id="artistsGrid">
+            <!-- Add Artist Slot Card -->
+            <div class="add-artist-card" id="btnAddArtist">
+              <div class="add-artist-portrait-dashed">
+                <i class="fa-solid fa-plus"></i>
+              </div>
+              <span class="add-artist-label">Add Artist</span>
+              <span class="add-artist-sub">Follow new favorites</span>
+            </div>
+
+
+
+            <div class="artist-circle-card" data-artist-query="A.R. Rahman">
+              <div class="artist-portrait-wrapper">
+                <img src="https://images.unsplash.com/photo-1513829096999-497860229414?auto=format&fit=crop&w=300&q=80"
+                  alt="A.R. Rahman" class="artist-portrait">
+              </div>
+              <div class="artist-title-row">
+                <span class="artist-name">A.R. Rahman</span>
+              </div>
+              <span class="artist-desc">14.8M Monthly Listeners</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- =================== PODCASTS VIEW =================== -->
+        <div id="podcastsView" style="display: none;">
+          <div class="section-title-row" style="margin-bottom: 25px;">
+            <h2 class="section-title-text">Popular Podcasts</h2>
+          </div>
+          <div class="podcast-grid">
+            <div class="podcast-card" data-podcast-query="The Daily Vibe">
+              <div class="pod-art-wrapper">
+                <img src="https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=300&q=80"
+                  alt="The Daily Vibe" class="pod-art" loading="lazy">
+              </div>
+              <div class="pod-details">
+                <span class="pod-title">The Daily Vibe</span>
+                <span class="pod-author">By Weekly Labs</span>
+              </div>
+            </div>
+
+            <div class="podcast-card" data-podcast-query="Tech Talk">
+              <div class="pod-art-wrapper">
+                <img src="https://images.unsplash.com/photo-1478737270239-2f02b77fc618?auto=format&fit=crop&w=300&q=80"
+                  alt="Tech Talk" class="pod-art" loading="lazy">
+              </div>
+              <div class="pod-details">
+                <span class="pod-title">Tech Talk</span>
+                <span class="pod-author">By Silicon Valley</span>
+              </div>
+            </div>
+
+            <div class="podcast-card" data-podcast-query="Creative Minds">
+              <div class="pod-art-wrapper">
+                <img src="https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=300&q=80"
+                  alt="Creative Minds" class="pod-art" loading="lazy">
+              </div>
+              <div class="pod-details">
+                <span class="pod-title">Creative Minds</span>
+                <span class="pod-author">By Studio One</span>
+              </div>
+            </div>
+
+            <div class="podcast-card" data-podcast-query="Acoustic Stories">
+              <div class="pod-art-wrapper">
+                <img src="https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=300&q=80"
+                  alt="Acoustic Stories" class="pod-art" loading="lazy">
+              </div>
+              <div class="pod-details">
+                <span class="pod-title">Acoustic Stories</span>
+                <span class="pod-author">By Sunrise Audio</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+      </div>
+    </main>
+
+    <!-- Persistent Bottom Playback Bar -->
+    <footer class="playback-bar-panel">
+      <!-- Left Area: Active Track Details -->
+      <div class="track-details">
+        <div class="track-thumbnail-wrapper">
+          <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=150&q=80"
+            alt="Track Art" id="trackArt" class="track-art">
+
+          <!-- Mini music playing indicator bars -->
+          <div class="music-bars" id="musicBars">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+          </div>
+        </div>
+        <div class="track-metadata">
+          <div class="track-scrolling-title">
+            <span class="track-title" id="playerTitle">Select a track to play</span>
+          </div>
+          <span class="track-artist" id="playerArtist">Your stream is ready</span>
+        </div>
+        <button class="heart-btn" id="btnHeartTrack" title="Add to Library">
+          <i class="fa-regular fa-heart"></i>
+        </button>
+      </div>
+
+      <!-- Center Area: Playback Controls & Timeline Progress -->
+      <div class="player-controls">
+        <div class="control-actions">
+          <button class="ctrl-btn" id="btnShuffle" title="Shuffle"><i class="fa-solid fa-shuffle"></i></button>
+          <button class="ctrl-btn" id="btnPrev" title="Previous"><i class="fa-solid fa-backward-step"></i></button>
+          <button class="ctrl-btn-play" id="btnPlayPause" title="Play">
+            <i class="fa-solid fa-play"></i>
+          </button>
+          <button class="ctrl-btn" id="btnNext" title="Next"><i class="fa-solid fa-forward-step"></i></button>
+          <button class="ctrl-btn" id="btnRepeat" title="Repeat"><i class="fa-solid fa-repeat"></i></button>
+        </div>
+
+        <div class="playback-timeline">
+          <span class="time-label" id="timeCurrent">0:00</span>
+          <div class="progress-bar-container" id="progressBarContainer">
+            <div class="progress-bar-rail"></div>
+            <div class="progress-bar-fill" id="progressBarFill"></div>
+            <div class="progress-bar-handle" id="progressBarHandle"></div>
+          </div>
+          <span class="time-label" id="timeTotal">0:00</span>
+        </div>
+      </div>
+
+      <!-- Right Area: Volume and Aux Controls -->
+      <div class="aux-controls">
+        <button class="aux-btn" id="btnToggleVideoDrawer" style="display: none;"></button>
+        <button class="aux-btn" id="btnMinimizeDrawer" style="display: none;"></button>
+
+        <div class="volume-control-group">
+          <button class="aux-btn" id="btnMuteToggle" title="Mute">
+            <i class="fa-solid fa-volume-high" id="volumeIcon"></i>
+          </button>
+          <div class="volume-slider-container" id="volumeSliderContainer">
+            <div class="volume-rail"></div>
+            <div class="volume-fill" id="volumeFill" style="width: 80%;"></div>
+            <div class="volume-handle" id="volumeHandle" style="left: 80%;"></div>
+          </div>
+        </div>
+
+        <!-- Playlist extra icon -->
+        <button class="aux-btn" title="Queue List"><i class="fa-solid fa-list-ul playlist-indicator-icon"></i></button>
+        <!-- Fullscreen extra icon -->
+        <button class="aux-btn" title="Fullscreen"><i class="fa-solid fa-expand fullscreen-btn"></i></button>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Custom Premium Input Modal -->
+  <div class="custom-modal-overlay" id="customInputModal" style="display: none;">
+    <div class="custom-modal-card">
+      <h3 class="custom-modal-title" id="customModalTitle">Create Playlist</h3>
+      <p class="custom-modal-subtitle" id="customModalSubtitle">Enter a name for your custom playlist:</p>
+
+      <div class="custom-modal-input-wrapper">
+        <i class="fa-solid fa-compact-disc modal-search-icon" id="modalSearchIcon"></i>
+        <input type="text" class="custom-modal-input" id="customModalInput" placeholder="My Playlist...">
+      </div>
+
+      <!-- Optional secondary input for extra details -->
+      <div class="custom-modal-input-wrapper" id="customModalInput2Wrapper" style="display: none;">
+        <i class="fa-solid fa-circle-info modal-search-icon"></i>
+        <input type="text" class="custom-modal-input" id="customModalInput2"
+          placeholder="Monthly Listeners (optional)...">
+      </div>
+
+      <div class="custom-modal-actions">
+        <button class="custom-modal-btn cancel-btn" id="btnCustomModalCancel">Cancel</button>
+        <button class="custom-modal-btn confirm-btn" id="btnCustomModalConfirm">Create</button>
+      </div>
+    </div>
+
+    <!-- Collapsible Floating Video Drawer (PIP Style) -->
+    <!-- Invisible background YouTube Player for premium Spotify-like audio-only streaming -->
+    <div class="video-drawer" id="videoDrawer"
+      style="position: absolute !important; left: -9999px !important; width: 1px !important; height: 1px !important; opacity: 0 !important; overflow: hidden !important; pointer-events: none !important;">
+      <div class="drawer-body">
+        <div id="youtubePlayerPlaceholder"></div>
+      </div>
+    </div>
+
+
+
+    <!-- Load Main App Controller Script (which asynchronously handles YouTube API load) -->
+    <script src="script.js?v=admin-v4"></script>
+</body>
+
+</html>

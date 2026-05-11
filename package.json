@@ -1,0 +1,27 @@
+{
+  "name": "vibestream-music-app",
+  "version": "1.0.0",
+  "description": "A premium Spotify-like music streaming web app integrated with YouTube Data API v3",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "music",
+    "youtube",
+    "streaming",
+    "express",
+    "vibestream"
+  ],
+  "author": "Shamil",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}
