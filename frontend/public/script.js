@@ -2,7 +2,15 @@
    Vibestream - Interactive Application Engine & Media Controller
    ========================================================================== */
 
+// Safe state constants for YouTube playback states to prevent reference crashes if YouTube is blocked
+const YT_PLAYING = 1;
+const YT_PAUSED = 2;
+const YT_BUFFERING = 3;
+const YT_ENDED = 0;
+
 // Global state variables
+let isFallbackAudioActive = false;
+let fallbackAudio = null;
 let youtubePlayer = null;
 let currentTrack = null;
 let currentTrackIndex = -1;
@@ -408,6 +416,7 @@ function onYouTubeIframeAPIReady() {
     height: '100%',
     width: '100%',
     videoId: '', // Initialize empty
+    host: 'https://www.youtube.com',
     playerVars: {
       playsinline: 1,
       controls: 0,      // Hide native controls
@@ -428,12 +437,18 @@ function onPlayerReady(event) {
   console.log('[Melody API] Streaming Engine is now online!');
   isPlayerReady = true;
   
+  // Smoothly minimize the player after successful bootstrap (satisfies YouTube's 200px initial size rule)
+  setTimeout(() => {
+    if (dom.videoDrawer) {
+      dom.videoDrawer.classList.add('minimized');
+    }
+  }, 1500);
+  
   // Match standard volume defaults
   youtubePlayer.setVolume(80);
   updateVolumeUI(80);
   
-  // Hook listeners across both control bars
-  setupControlListeners();
+
   
   // Set initial homepage state based on active user state
   if (currentUser) {
@@ -447,9 +462,12 @@ function onPlayerReady(event) {
   }
 }
 
+// Legacy fallback functions removed — replaced by initAdblockProofPlayer() iframe booster.
+// The Cobalt/Invidious /api/stream endpoint is no longer used.
+
 function onPlayerStateChange(event) {
   switch (event.data) {
-    case YT.PlayerState.PLAYING:
+    case YT_PLAYING:
       console.log('[Playback Engine] Status: Play');
       
       // Update styling to trigger equalizers and double neon orbit
@@ -466,8 +484,8 @@ function onPlayerStateChange(event) {
       updateGridActiveStates();
       break;
       
-    case YT.PlayerState.PAUSED:
-    case YT.PlayerState.BUFFERING:
+    case YT_PAUSED:
+    case YT_BUFFERING:
       console.log('[Playback Engine] Status: Paused/Buffering');
       
       // Stop animation pulses
@@ -483,7 +501,7 @@ function onPlayerStateChange(event) {
       stopProgressTracking();
       break;
       
-    case YT.PlayerState.ENDED:
+    case YT_ENDED:
       console.log('[Playback Engine] Status: Finished');
       
       // Debounce and prevent duplicate ended triggers within rapid windows (2.5 seconds)
@@ -628,7 +646,36 @@ async function sendTelemetryFeedback(trackId, event, duration = 0) {
 }
 
 function playTrack(track, index) {
-  if (!isPlayerReady || !track) return;
+  if (!track) return;
+
+  // Sync bottom player details
+  dom.playerTitle.innerText = decodeHtml(track.title);
+  dom.playerArtist.innerText = decodeHtml(track.channelTitle);
+  dom.trackArt.src = track.thumbnail;
+  
+  // Sync top Hero details
+  dom.heroTitle.innerText = decodeHtml(track.title);
+  dom.heroArtist.innerText = decodeHtml(track.channelTitle);
+  dom.heroArt.src = track.thumbnail;
+
+  currentTrack = track;
+  currentTrackIndex = index;
+  updateGridActiveStates();
+  syncLikedState(track.id);
+
+  if (!isPlayerReady) {
+    console.warn('[Melody Player] Player not fully ready. Activating iframe booster now...');
+    showToast('Starting player...');
+    
+    // Immediately boot the adblock-proof iframe player and then play
+    initAdblockProofPlayer();
+    
+    // Small delay to let the player initialize, then retry
+    setTimeout(() => {
+      playTrack(track, index);
+    }, 600);
+    return;
+  }
   
   // Evaluate skip/heartbeat feedback for the previous track before starting new play
   if (telemetryActiveTrack) {
@@ -656,9 +703,6 @@ function playTrack(track, index) {
 
   console.log(`[Melody] Loading track: "${track.title}" (ID: ${track.id})`);
   
-  currentTrack = track;
-  currentTrackIndex = index;
-  
   // Track playback history for loop prevention (cache last 8 items)
   if (track && track.id) {
     recentPlaybackHistoryIds = recentPlaybackHistoryIds.filter(id => id !== track.id);
@@ -673,19 +717,6 @@ function playTrack(track, index) {
   
   // Add to dynamically tracked recently played songs
   addTrackToRecentlyPlayed(track);
-  
-  // Sync bottom player details
-  dom.playerTitle.innerText = decodeHtml(track.title);
-  dom.playerArtist.innerText = decodeHtml(track.channelTitle);
-  dom.trackArt.src = track.thumbnail;
-  
-  // Sync top Hero details
-  dom.heroTitle.innerText = decodeHtml(track.title);
-  dom.heroArtist.innerText = decodeHtml(track.channelTitle);
-  dom.heroArt.src = track.thumbnail;
-  
-  updateGridActiveStates();
-  syncLikedState(track.id);
   
   // Stream the track
   youtubePlayer.loadVideoById(track.id);
@@ -785,7 +816,7 @@ function togglePlayPause() {
   if (!isPlayerReady || !currentTrack) return;
   
   const state = youtubePlayer.getPlayerState();
-  if (state === YT.PlayerState.PLAYING) {
+  if (state === YT_PLAYING) {
     youtubePlayer.pauseVideo();
   } else {
     youtubePlayer.playVideo();
@@ -1195,7 +1226,7 @@ function startProgressTracking() {
     
     // Telemetry listen seconds calculation
     const currentSecond = Math.floor(current);
-    if (currentSecond !== telemetryLastCheckedSecond && youtubePlayer.getPlayerState() === YT.PlayerState.PLAYING) {
+    if (currentSecond !== telemetryLastCheckedSecond && youtubePlayer.getPlayerState() === YT_PLAYING) {
       telemetryListenSeconds += 1;
       telemetryLastCheckedSecond = currentSecond;
 
@@ -1410,7 +1441,7 @@ function updateGridActiveStates() {
     if (currentTrack && trackId === currentTrack.id) {
       card.classList.add('active-playing');
       if (playBtn) {
-        if (youtubePlayer && youtubePlayer.getPlayerState() === YT.PlayerState.PLAYING) {
+        if (youtubePlayer && youtubePlayer.getPlayerState() === YT_PLAYING) {
           playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
         } else {
           playBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
@@ -1441,7 +1472,7 @@ function updateGridActiveStates() {
     if (isCurrent) {
       card.classList.add('active-playing');
       if (playIcon) {
-        if (youtubePlayer && youtubePlayer.getPlayerState() === YT.PlayerState.PLAYING) {
+        if (youtubePlayer && youtubePlayer.getPlayerState() === YT_PLAYING) {
           playIcon.className = 'fa-solid fa-pause';
         } else {
           playIcon.className = 'fa-solid fa-play';
@@ -1478,7 +1509,7 @@ function updateGridActiveStates() {
     if (currentTrack && trackId === currentTrack.id) {
       row.classList.add('active-playing');
       if (playIcon) {
-        if (youtubePlayer && youtubePlayer.getPlayerState() === YT.PlayerState.PLAYING) {
+        if (youtubePlayer && youtubePlayer.getPlayerState() === YT_PLAYING) {
           playIcon.className = 'fa-solid fa-pause';
         } else {
           playIcon.className = 'fa-solid fa-play';
@@ -1581,7 +1612,7 @@ function renderLikedSongsList() {
       <td class="col-idx">${index + 1}</td>
       <td class="col-play">
         <button class="row-play-btn" aria-label="Play Track">
-          <i class="fa-solid ${currentTrack && currentTrack.id === track.id && youtubePlayer && youtubePlayer.getPlayerState() === YT.PlayerState.PLAYING ? 'fa-pause' : 'fa-play'}"></i>
+          <i class="fa-solid ${currentTrack && currentTrack.id === track.id && youtubePlayer && youtubePlayer.getPlayerState() === YT_PLAYING ? 'fa-pause' : 'fa-play'}"></i>
         </button>
       </td>
       <td>
@@ -1986,8 +2017,127 @@ function setupControlListeners() {
   
   dom.heroHeart.addEventListener('click', toggleLikeTrack);
 
+  // --- Video Drawer Floating PIP Toggle ---
+  if (dom.btnToggleVideoDrawer && dom.videoDrawer) {
+    dom.btnToggleVideoDrawer.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dom.videoDrawer.classList.toggle('minimized');
+    });
+  }
+
+  if (dom.btnMinimizeDrawer && dom.videoDrawer) {
+    dom.btnMinimizeDrawer.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dom.videoDrawer.classList.add('minimized');
+    });
+  }
+
+  if (dom.videoDrawer) {
+    dom.videoDrawer.addEventListener('click', () => {
+      if (dom.videoDrawer.classList.contains('minimized')) {
+        dom.videoDrawer.classList.remove('minimized');
+      }
+    });
+  }
+
+  // --- Diagnostics & Troubleshooter Modal Listeners ---
+  const btnTroubleshooter = document.getElementById('btnTroubleshooter');
+  const troubleshooterModal = document.getElementById('troubleshooterModal');
+  const btnTroubleshootClose = document.getElementById('btnTroubleshootClose');
+
+  if (btnTroubleshooter && troubleshooterModal) {
+    btnTroubleshooter.addEventListener('click', (e) => {
+      e.stopPropagation();
+      troubleshooterModal.style.display = 'flex';
+      runDiagnostics();
+    });
+  }
+
+  if (btnTroubleshootClose && troubleshooterModal) {
+    btnTroubleshootClose.addEventListener('click', () => {
+      troubleshooterModal.style.display = 'none';
+    });
+  }
+
   setupSeekers();
   setupVolumeController();
+}
+
+// Global diagnostic error logging
+const diagnosticConsoleErrors = [];
+window.addEventListener('error', (event) => {
+  const file = event.filename ? event.filename.split('/').pop() : 'inline';
+  diagnosticConsoleErrors.push(`[Error] ${event.message} (${file}:${event.lineno})`);
+  const logDiv = document.getElementById('diagConsoleLogs');
+  if (logDiv) {
+    logDiv.innerText = diagnosticConsoleErrors.join('\n');
+    logDiv.style.color = '#ef4444';
+  }
+});
+
+function runDiagnostics() {
+  const diagBackendStatus = document.getElementById('diagBackendStatus');
+  const diagYoutubeScriptStatus = document.getElementById('diagYoutubeScriptStatus');
+  const diagYoutubePlayerStatus = document.getElementById('diagYoutubePlayerStatus');
+  const diagShieldStatus = document.getElementById('diagShieldStatus');
+
+  // 1. Backend Server Connection Test
+  fetch('/search?q=test')
+    .then(res => {
+      if (res.ok) {
+        diagBackendStatus.innerHTML = '<i class="fa-solid fa-circle-check"></i> Connected';
+        diagBackendStatus.style.color = '#10b981';
+      } else {
+        diagBackendStatus.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Error Response';
+        diagBackendStatus.style.color = '#ef4444';
+      }
+    })
+    .catch(err => {
+      diagBackendStatus.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Connection Failed';
+      diagBackendStatus.style.color = '#ef4444';
+    });
+
+  // 2. YouTube Script Loaded Test
+  const isScriptLoaded = typeof window.YT !== 'undefined' && typeof window.YT.Player !== 'undefined';
+  if (isScriptLoaded) {
+    diagYoutubeScriptStatus.innerHTML = '<i class="fa-solid fa-circle-check"></i> Loaded';
+    diagYoutubeScriptStatus.style.color = '#10b981';
+  } else {
+    diagYoutubeScriptStatus.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> BLOCKED / FAILED';
+    diagYoutubeScriptStatus.style.color = '#ef4444';
+    if (!diagnosticConsoleErrors.includes("YouTube Script block detected by browser policy.")) {
+      diagnosticConsoleErrors.push("YouTube Script block detected by browser policy.");
+    }
+  }
+
+  // 3. YouTube Player Bootstrap Test
+  if (isPlayerReady) {
+    diagYoutubePlayerStatus.innerHTML = '<i class="fa-solid fa-circle-check"></i> Operational';
+    diagYoutubePlayerStatus.style.color = '#10b981';
+  } else {
+    diagYoutubePlayerStatus.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> NOT READY (Fallback Engaged)';
+    diagYoutubePlayerStatus.style.color = '#eab308';
+  }
+
+  // 4. Adblocker / Shields Assessment
+  if (!isScriptLoaded || !isPlayerReady) {
+    diagShieldStatus.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> ACTIVE (Blocking YouTube)';
+    diagShieldStatus.style.color = '#ef4444';
+    if (typeof window.YT === 'undefined') {
+      diagnosticConsoleErrors.push("[Brave Shields] Native YouTube Player script download blocked! Turn off Shields to fix.");
+    } else {
+      diagnosticConsoleErrors.push("[Layout Restriction] YouTube initialization failed! Browser blocked iframe messaging.");
+    }
+  } else {
+    diagShieldStatus.innerHTML = '<i class="fa-solid fa-circle-check"></i> INACTIVE (Streaming Clean)';
+    diagShieldStatus.style.color = '#10b981';
+  }
+
+  // Update Logs Div
+  const logDiv = document.getElementById('diagConsoleLogs');
+  if (logDiv && diagnosticConsoleErrors.length > 0) {
+    logDiv.innerText = diagnosticConsoleErrors.join('\n');
+  }
 }
 
 /* ==========================================================================
@@ -2635,6 +2785,8 @@ function initializeGlobalApp() {
     }
   });
 
+  // Call setupControlListeners to wire up all layout interaction triggers instantly on page load
+  setupControlListeners();
 }
 
 /* ==========================================================================
@@ -2746,6 +2898,164 @@ window.openAdminLoginModal = openAdminLoginModal;
 window.closeAdminLoginModal = closeAdminLoginModal;
 window.handleAdminLogin = handleAdminLogin;
 
+function initAdblockProofPlayer() {
+  if (isPlayerReady) return;
+  console.log('[Melody Booster] Initializing Adblock-Proof Custom Iframe Player...');
+  
+  const placeholder = document.getElementById('youtubePlayerPlaceholder');
+  if (!placeholder) return;
+  
+  // Create a clean iframe element
+  const iframe = document.createElement('iframe');
+  iframe.id = 'youtubeIframePlayer';
+  iframe.width = '100%';
+  iframe.height = '100%';
+  iframe.style.border = 'none';
+  iframe.allow = 'autoplay; encrypted-media; picture-in-picture';
+  iframe.src = 'about:blank';
+  
+  placeholder.innerHTML = '';
+  placeholder.appendChild(iframe);
+  
+  let currentVolume = 80;
+  let cachedState = 2; // Paused
+  let cachedDuration = 240;  // default until we know real duration
+  let cachedCurrentTime = 0;
+  
+  // Wall-clock timer — advances cachedCurrentTime every second while playing
+  let clockInterval = null;
+  let playStartWallTime = null;  // Date.now() when play last started
+  let playStartOffset = 0;       // cachedCurrentTime at that moment
+
+  function startClock() {
+    stopClock();
+    playStartWallTime = Date.now();
+    playStartOffset = cachedCurrentTime;
+    clockInterval = setInterval(() => {
+      if (cachedState === 1) {
+        const elapsed = (Date.now() - playStartWallTime) / 1000;
+        cachedCurrentTime = playStartOffset + elapsed;
+        
+        // Auto-advance when song ends (with a 2s buffer so we don't double-fire)
+        if (cachedDuration > 10 && cachedCurrentTime >= cachedDuration - 1) {
+          stopClock();
+          cachedState = YT_ENDED;
+          onPlayerStateChange({ data: YT_ENDED });
+        }
+      }
+    }, 500);
+  }
+
+  function stopClock() {
+    if (clockInterval) {
+      clearInterval(clockInterval);
+      clockInterval = null;
+    }
+  }
+  
+  // Custom youtubePlayer implementation with exact same signature as YT.Player
+  youtubePlayer = {
+    playVideo: () => {
+      if (iframe.contentWindow) {
+        iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo' }), '*');
+      }
+      // Snapshot offset so wall-clock picks up from here
+      playStartWallTime = Date.now();
+      playStartOffset = cachedCurrentTime;
+      cachedState = 1;
+      startClock();
+      onPlayerStateChange({ data: 1 });
+    },
+    pauseVideo: () => {
+      if (iframe.contentWindow) {
+        iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo' }), '*');
+      }
+      stopClock();
+      cachedState = 2;
+      onPlayerStateChange({ data: 2 });
+    },
+    setVolume: (v) => {
+      currentVolume = v;
+      if (iframe.contentWindow) {
+        iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'setVolume', args: [v] }), '*');
+      }
+    },
+    getVolume: () => currentVolume,
+    getPlayerState: () => cachedState,
+    getCurrentTime: () => cachedCurrentTime,
+    getDuration: () => cachedDuration,
+    seekTo: (seconds) => {
+      cachedCurrentTime = seconds;
+      playStartWallTime = Date.now();
+      playStartOffset = seconds;
+      if (iframe.contentWindow) {
+        iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'seekTo', args: [seconds, true] }), '*');
+      }
+    },
+    loadVideoById: (id) => {
+      console.log('[Melody Booster] Loading Video ID:', id);
+      stopClock();
+      cachedCurrentTime = 0;
+      playStartOffset = 0;
+      cachedDuration = 240;
+      cachedState = 3; // Buffering
+      onPlayerStateChange({ data: 3 });
+      
+      const origin = window.location.origin;
+      const embedUrl = `https://www.youtube.com/embed/${id}?enablejsapi=1&autoplay=1&controls=0&modestbranding=1&rel=0&playsinline=1&origin=${encodeURIComponent(origin)}`;
+      iframe.src = embedUrl;
+      
+      // Transition to playing state after brief buffer
+      setTimeout(() => {
+        cachedState = 1; // Playing
+        playStartWallTime = Date.now();
+        playStartOffset = 0;
+        startClock();
+        onPlayerStateChange({ data: 1 });
+      }, 1500);
+    }
+  };
+  
+  // Window message listener — captures real duration and state from YouTube embed
+  window.addEventListener('message', (event) => {
+    if (!event.origin.includes('youtube.com')) return;
+    try {
+      const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+      if (data.event === 'onStateChange') {
+        const newState = data.info;
+        if (newState === 1 && cachedState !== 1) {
+          // Resumed externally — restart clock
+          playStartWallTime = Date.now();
+          playStartOffset = cachedCurrentTime;
+          startClock();
+        } else if (newState !== 1) {
+          stopClock();
+        }
+        cachedState = newState;
+        onPlayerStateChange({ data: newState });
+      } else if (data.event === 'infoDelivery' && data.info) {
+        // Use real values from YouTube if they come through
+        if (typeof data.info.currentTime === 'number' && data.info.currentTime > 0) {
+          cachedCurrentTime = data.info.currentTime;
+          playStartWallTime = Date.now();
+          playStartOffset = data.info.currentTime;
+        }
+        if (typeof data.info.duration === 'number' && data.info.duration > 0) {
+          cachedDuration = data.info.duration;
+        }
+        if (typeof data.info.playerState === 'number') {
+          cachedState = data.info.playerState;
+        }
+      }
+    } catch (err) {
+      // Ignore non-JSON messages
+    }
+  });
+  
+  // Call onPlayerReady instantly to boot up the app UI
+  onPlayerReady();
+}
+
 // Dynamically load the YouTube Iframe Player API asynchronously to resolve race conditions
 (function() {
   const tag = document.createElement('script');
@@ -2757,4 +3067,12 @@ window.handleAdminLogin = handleAdminLogin;
     document.head.appendChild(tag);
   }
   console.log('[Melody API] Dynamic YouTube Iframe API Script injected.');
+
+  // If official YouTube API hasn't loaded within 1.5s, boot the iframe booster immediately
+  setTimeout(() => {
+    if (!isPlayerReady) {
+      console.warn('[Melody Player] YouTube API blocked/slow — activating iframe booster.');
+      initAdblockProofPlayer();
+    }
+  }, 1500);
 })();

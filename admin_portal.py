@@ -126,7 +126,7 @@ class AdminPortalApp:
         logo_lbl.pack()
 
         # Title Block
-        title_lbl = tk.Label(login_frame, text="Melody Admin Portal", font=("Segoe UI", 24, "bold"), bg=APP_BG, fg=TEXT_PRIMARY)
+        title_lbl = tk.Label(login_frame, text="Vibestream Admin Portal", font=("Segoe UI", 24, "bold"), bg=APP_BG, fg=TEXT_PRIMARY)
         title_lbl.pack()
         
         subtitle_lbl = tk.Label(login_frame, text="Secure Administrative Access Gateway", font=("Segoe UI", 10), bg=APP_BG, fg=TEXT_SECONDARY)

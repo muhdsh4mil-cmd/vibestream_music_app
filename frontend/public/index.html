@@ -73,7 +73,7 @@
     <div class="auth-card" id="authSignupCard" style="display: none;">
       <div class="auth-logo-section">
         <i class="fa-solid fa-music auth-logo-icon"></i>
-        <span class="auth-logo-text">Melody</span>
+        <span class="auth-logo-text">Vibestream</span>
       </div>
       <h1 class="auth-title">Create your account</h1>
       <p class="auth-subtitle">Sign up to start your music journey</p>
@@ -137,7 +137,7 @@
       <!-- Brand Logo -->
       <div class="brand-logo" id="btnLogoHome">
         <i class="fa-solid fa-music brand-icon"></i>
-        <span class="brand-name">Melody</span>
+        <span class="brand-name">Vibestream</span>
       </div>
 
       <!-- Core Navigation -->
@@ -170,8 +170,6 @@
           <i class="fa-solid fa-tower-broadcast"></i>
           <span>Podcasts</span>
         </button>
-
-
 
         <!-- Maintain compatibility with script.js cache variables -->
         <button id="btnNavQueue" style="display: none;"></button>
@@ -698,9 +696,6 @@
 
       <!-- Right Area: Volume and Aux Controls -->
       <div class="aux-controls">
-        <button class="aux-btn" id="btnToggleVideoDrawer" style="display: none;"></button>
-        <button class="aux-btn" id="btnMinimizeDrawer" style="display: none;"></button>
-
         <div class="volume-control-group">
           <button class="aux-btn" id="btnMuteToggle" title="Mute">
             <i class="fa-solid fa-volume-high" id="volumeIcon"></i>
@@ -744,53 +739,48 @@
         <button class="custom-modal-btn confirm-btn" id="btnCustomModalConfirm">Create</button>
       </div>
     </div>
-
-    <!-- Collapsible Floating Video Drawer (PIP Style) -->
-    <!-- Invisible background YouTube Player for premium Spotify-like audio-only streaming -->
-    <div class="video-drawer" id="videoDrawer"
-      style="position: fixed !important; bottom: 0 !important; right: -9999px !important; width: 300px !important; height: 200px !important; opacity: 0.01 !important; pointer-events: none !important; z-index: -9999 !important; overflow: hidden !important;">
-      <div class="drawer-body">
-        <div id="youtubePlayerPlaceholder"></div>
-      </div>
-    </div>
+  </div>
+  <!-- Hidden background player for streaming audio safely without visual intrusion -->
+  <div id="youtubePlayerPlaceholder"
+    style="position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; pointer-events: none;"></div>
 
 
 
-    <!-- Load Main App Controller Script (which asynchronously handles YouTube API load) -->
-    <script src="script.js?v=admin-v4"></script>
+  <!-- Load Main App Controller Script (which asynchronously handles YouTube API load) -->
+  <script src="script.js?v=admin-v4"></script>
 
-    <!-- Mobile Interactive Controls Script -->
-    <script>
-      document.addEventListener('DOMContentLoaded', () => {
-        const btnMobileMenu = document.getElementById('btnMobileMenu');
-        const sidebarPanel = document.querySelector('.sidebar-panel');
-        const sidebarOverlay = document.getElementById('sidebarOverlay');
+  <!-- Mobile Interactive Controls Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const btnMobileMenu = document.getElementById('btnMobileMenu');
+      const sidebarPanel = document.querySelector('.sidebar-panel');
+      const sidebarOverlay = document.getElementById('sidebarOverlay');
 
-        if (btnMobileMenu && sidebarPanel && sidebarOverlay) {
-          const toggleSidebar = () => {
-            sidebarPanel.classList.toggle('mobile-active');
-            sidebarOverlay.classList.toggle('active');
-          };
+      if (btnMobileMenu && sidebarPanel && sidebarOverlay) {
+        const toggleSidebar = () => {
+          sidebarPanel.classList.toggle('mobile-active');
+          sidebarOverlay.classList.toggle('active');
+        };
 
-          const closeSidebar = () => {
-            sidebarPanel.classList.remove('mobile-active');
-            sidebarOverlay.classList.remove('active');
-          };
+        const closeSidebar = () => {
+          sidebarPanel.classList.remove('mobile-active');
+          sidebarOverlay.classList.remove('active');
+        };
 
-          btnMobileMenu.addEventListener('click', (e) => {
-            e.stopPropagation();
-            toggleSidebar();
-          });
+        btnMobileMenu.addEventListener('click', (e) => {
+          e.stopPropagation();
+          toggleSidebar();
+        });
 
-          sidebarOverlay.addEventListener('click', closeSidebar);
+        sidebarOverlay.addEventListener('click', closeSidebar);
 
-          // Close sidebar when clicking any navigation button on mobile
-          sidebarPanel.querySelectorAll('.nav-btn, #btnLogoHome').forEach(btn => {
-            btn.addEventListener('click', closeSidebar);
-          });
-        }
-      });
-    </script>
+        // Close sidebar when clicking any navigation button on mobile
+        sidebarPanel.querySelectorAll('.nav-btn, #btnLogoHome').forEach(btn => {
+          btn.addEventListener('click', closeSidebar);
+        });
+      }
+    });
+  </script>
 </body>
 
 </html>

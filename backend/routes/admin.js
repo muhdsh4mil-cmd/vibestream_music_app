@@ -59,11 +59,13 @@ router.get('/verify', (req, res) => {
   return res.json({ verified: true, username: session.username });
 });
 
+const db = require('../database');
+
 /**
  * GET /api/admin/metrics
  * Returns advanced system and process diagnostics (only to verified sessions!)
  */
-router.get('/metrics', (req, res) => {
+router.get('/metrics', async (req, res) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Unauthorized.' });
@@ -86,11 +88,8 @@ router.get('/metrics', (req, res) => {
   const memoryUsage = process.memoryUsage();
   let totalUsers = 0;
   try {
-    const usersFile = path.join(__dirname, '..', 'users.json');
-    if (fs.existsSync(usersFile)) {
-      const usersData = fs.readFileSync(usersFile, 'utf8');
-      totalUsers = JSON.parse(usersData || '[]').length;
-    }
+    const allUsers = await db.getAllUsers();
+    totalUsers = allUsers.length;
   } catch (e) {
     console.error(e);
   }
@@ -111,7 +110,7 @@ router.get('/metrics', (req, res) => {
  * GET /api/admin/users
  * Returns a list of all registered user accounts for the dashboard view.
  */
-router.get('/users', (req, res) => {
+router.get('/users', async (req, res) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Unauthorized.' });
@@ -125,12 +124,8 @@ router.get('/users', (req, res) => {
   }
 
   try {
-    const usersFile = path.join(__dirname, '..', 'users.json');
-    if (!fs.existsSync(usersFile)) {
-      return res.json([]);
-    }
-    const usersData = fs.readFileSync(usersFile, 'utf8');
-    return res.json(JSON.parse(usersData || '[]'));
+    const users = await db.getAllUsers();
+    return res.json(users);
   } catch (err) {
     console.error('[Admin Portal] Error reading users for dashboard:', err);
     return res.status(500).json({ error: 'Failed to retrieve registered users list.' });
@@ -139,9 +134,9 @@ router.get('/users', (req, res) => {
 
 /**
  * DELETE /api/admin/users/:email
- * Deletes a registered user from users.json by their email address.
+ * Deletes a registered user by their email address.
  */
-router.delete('/users/:email', (req, res) => {
+router.delete('/users/:email', async (req, res) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Unauthorized.' });
@@ -160,22 +155,10 @@ router.delete('/users/:email', (req, res) => {
   }
 
   try {
-    const usersFile = path.join(__dirname, '..', 'users.json');
-    if (!fs.existsSync(usersFile)) {
-      return res.status(404).json({ error: 'Users database file not found.' });
-    }
-
-    const usersData = fs.readFileSync(usersFile, 'utf8');
-    const users = JSON.parse(usersData || '[]');
-    
-    const initialLength = users.length;
-    const filteredUsers = users.filter(u => u.email.toLowerCase() !== emailToDelete.toLowerCase());
-
-    if (filteredUsers.length === initialLength) {
+    const success = await db.deleteUser(emailToDelete);
+    if (!success) {
       return res.status(404).json({ error: 'User with this email address not found.' });
     }
-
-    fs.writeFileSync(usersFile, JSON.stringify(filteredUsers, null, 2), 'utf8');
     return res.json({ success: true, message: `User account '${emailToDelete}' successfully deleted.` });
   } catch (err) {
     console.error('[Admin Portal] Error deleting user:', err);

@@ -1,38 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const fs = require('fs');
-const path = require('path');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
+const db = require('../database');
 
-const USERS_FILE = path.join(__dirname, '..', 'users.json');
 const SALT_ROUNDS = 10; // bcrypt work factor — higher = slower brute-force, ~100ms on login
-
-// Helper to read users securely
-function readUsers() {
-  try {
-    if (!fs.existsSync(USERS_FILE)) {
-      fs.writeFileSync(USERS_FILE, '[]', 'utf8');
-      return [];
-    }
-    const data = fs.readFileSync(USERS_FILE, 'utf8');
-    return JSON.parse(data || '[]');
-  } catch (error) {
-    console.error('[Auth Service] Error reading users database:', error);
-    return [];
-  }
-}
-
-// Helper to write users securely
-function writeUsers(users) {
-  try {
-    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), 'utf8');
-    return true;
-  } catch (error) {
-    console.error('[Auth Service] Error writing users database:', error);
-    return false;
-  }
-}
 
 /**
  * POST /api/auth/signup
@@ -68,37 +40,29 @@ router.post('/signup', async (req, res) => {
     });
   }
 
-  // 5. Duplicate email check
-  const users = readUsers();
-  const emailExists = users.some(u => u.email.toLowerCase() === trimmedEmail);
-  if (emailExists) {
-    return res.status(400).json({ error: 'An account with this email already exists.' });
-  }
-
-  // 6. Hash password with bcrypt before saving
   try {
+    // 5. Duplicate email check
+    const emailExists = await db.findUserByEmail(trimmedEmail);
+    if (emailExists) {
+      return res.status(400).json({ error: 'An account with this email already exists.' });
+    }
+
+    // 6. Hash password with bcrypt before saving
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
-    const newUser = {
-      id: crypto.randomUUID ? crypto.randomUUID() : crypto.randomBytes(16).toString('hex'),
+    const newUser = await db.createUser({
       fullName: trimmedName,
       email: trimmedEmail,
-      password: hashedPassword, // 🔒 Stored as bcrypt hash — original password is never saved
-      createdAt: new Date().toISOString()
-    };
+      password: hashedPassword
+    });
 
-    users.push(newUser);
-    if (writeUsers(users)) {
-      return res.json({
-        success: true,
-        message: 'Account created successfully!',
-        user: { id: newUser.id, fullName: newUser.fullName, email: newUser.email }
-      });
-    } else {
-      return res.status(500).json({ error: 'Failed to write account records to database.' });
-    }
+    return res.json({
+      success: true,
+      message: 'Account created successfully!',
+      user: { id: newUser.id, fullName: newUser.fullName, email: newUser.email }
+    });
   } catch (err) {
-    console.error('[Auth Service] bcrypt error during signup:', err);
+    console.error('[Auth Service] Error during signup:', err);
     return res.status(500).json({ error: 'An internal error occurred. Please try again.' });
   }
 });
@@ -116,19 +80,21 @@ router.post('/login', async (req, res) => {
   }
 
   const searchCredential = emailOrUsername.trim().toLowerCase();
-  const users = readUsers();
-
-  // Find user by email or full name (case-insensitive)
-  const matchedUser = users.find(u =>
-    u.email.toLowerCase() === searchCredential ||
-    u.fullName.toLowerCase() === searchCredential
-  );
-
-  if (!matchedUser) {
-    return res.status(401).json({ error: 'No account found with these credentials.' });
-  }
 
   try {
+    // Find user by email
+    let matchedUser = await db.findUserByEmail(searchCredential);
+
+    // If not found by email, see if any users match by full name (case-insensitive)
+    if (!matchedUser) {
+      const allUsers = await db.getAllUsers();
+      matchedUser = allUsers.find(u => u.fullName.toLowerCase() === searchCredential);
+    }
+
+    if (!matchedUser) {
+      return res.status(401).json({ error: 'No account found with these credentials.' });
+    }
+
     // Check if password is a bcrypt hash (starts with $2b$) or legacy plain text
     const isBcryptHash = matchedUser.password && matchedUser.password.startsWith('$2b$');
 
@@ -144,13 +110,8 @@ router.post('/login', async (req, res) => {
       // Auto-upgrade: hash this plain-text password now and save it
       if (passwordCorrect) {
         const upgraded = await bcrypt.hash(password, SALT_ROUNDS);
-        const allUsers = readUsers();
-        const idx = allUsers.findIndex(u => u.email === matchedUser.email);
-        if (idx !== -1) {
-          allUsers[idx].password = upgraded;
-          writeUsers(allUsers);
-          console.log(`[Auth Service] 🔒 Auto-upgraded password hash for: ${matchedUser.email}`);
-        }
+        await db.updateUserPassword(matchedUser.email, upgraded);
+        console.log(`[Auth Service] 🔒 Auto-upgraded password hash for: ${matchedUser.email}`);
       }
     }
 
@@ -165,7 +126,7 @@ router.post('/login', async (req, res) => {
     });
 
   } catch (err) {
-    console.error('[Auth Service] bcrypt error during login:', err);
+    console.error('[Auth Service] Error during login:', err);
     return res.status(500).json({ error: 'An internal error occurred. Please try again.' });
   }
 });

@@ -3161,3 +3161,123 @@ button {
   }
 }
 
+/* ==========================================================================
+   Premium PIP Floating Video Drawer (Cinema Mode)
+   ========================================================================== */
+
+.video-drawer {
+  position: fixed;
+  bottom: calc(var(--player-height) + 20px);
+  right: 20px;
+  width: 320px;
+  height: 212px; /* 32px header + 180px body */
+  background-color: var(--bg-dark-panel);
+  border: 1px solid var(--border-glass-active);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-premium), 0 0 25px rgba(142, 82, 245, 0.25);
+  z-index: 999;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: var(--transition-smooth);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.video-drawer.minimized {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  bottom: calc(var(--player-height) + 20px);
+  right: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 15px rgba(142, 82, 245, 0.4);
+  cursor: pointer;
+  border-color: var(--border-glass);
+}
+
+.video-drawer.minimized:hover {
+  transform: scale(1.08);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.7), 0 0 20px rgba(142, 82, 245, 0.6);
+}
+
+/* Header inside video drawer */
+.drawer-header {
+  height: 32px;
+  background-color: rgba(5, 5, 8, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--border-glass);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-muted);
+  user-select: none;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.drawer-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.drawer-ctrl-btn {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  transition: var(--transition-fast);
+  font-size: 11px;
+  background: transparent;
+}
+
+.drawer-ctrl-btn:hover {
+  color: var(--text-main);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.drawer-body {
+  flex-grow: 1;
+  width: 100%;
+  height: calc(100% - 32px);
+  background-color: #000;
+  position: relative;
+}
+
+.video-drawer.minimized .drawer-header {
+  display: none;
+}
+
+.video-drawer.minimized .drawer-body {
+  height: 100%;
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+/* Tiny spinning music disc icon when minimized */
+.video-drawer.minimized::after {
+  content: '\f144'; /* FontAwesome play/circle icon */
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--accent-purple);
+  font-size: 20px;
+  z-index: 10;
+  pointer-events: none;
+  text-shadow: 0 0 8px var(--accent-purple-glow);
+  animation: miniSpin 3s linear infinite;
+}
+
+@keyframes miniSpin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+

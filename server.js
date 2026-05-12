@@ -80,6 +80,8 @@ app.use('/api/admin', adminRouter);
 // Mount auth router with strict brute-force protection
 app.use('/api/auth', authLimiter, authRouter);
 
+
+
 // Fallback path: serve index.html for any other routes (SPA routing)
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'public', 'index.html'));
