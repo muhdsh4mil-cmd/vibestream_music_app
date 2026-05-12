@@ -174,11 +174,15 @@ const PREMIUM_FALLBACK_POOL = [
   }
 ];
 
-// Helper to resolve API URLs (fallback to port 3000 if running on other ports)
+// Helper to resolve API URLs (fallback to port 3000 if running on other ports, and resolve to Render backend if on custom production domains)
 const getApiUrl = (path) => {
   const isProd = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
   if (!isProd && window.location.port !== '3000') {
     return `http://localhost:3000${path}`;
+  }
+  // If hosted on Vercel or custom domain in production, route API requests to Render backend
+  if (isProd && !window.location.hostname.endsWith('.onrender.com')) {
+    return `https://vibestream-8ds6.onrender.com${path}`;
   }
   return path;
 };
@@ -633,7 +637,7 @@ let telemetryLastCheckedSecond = -1;
 
 async function sendTelemetryFeedback(trackId, event, duration = 0) {
   try {
-    await fetch('/api/search/feedback', {
+    await fetch(getApiUrl('/api/search/feedback'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -2082,7 +2086,7 @@ function runDiagnostics() {
   const diagShieldStatus = document.getElementById('diagShieldStatus');
 
   // 1. Backend Server Connection Test
-  fetch('/search?q=test')
+  fetch(getApiUrl('/search?q=test'))
     .then(res => {
       if (res.ok) {
         diagBackendStatus.innerHTML = '<i class="fa-solid fa-circle-check"></i> Connected';
@@ -2525,13 +2529,21 @@ function initializeGlobalApp() {
         btnSignupSubmit.disabled = true;
         btnSignupSubmit.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
 
-        const res = await fetch('/api/auth/signup', {
+        const res = await fetch(getApiUrl('/api/auth/signup'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ fullName, email, password, confirmPassword })
         });
 
-        const data = await res.json();
+        let data;
+        const contentType = res.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          data = await res.json();
+        } else {
+          const rawText = await res.text();
+          throw new Error(`Server returned an invalid response (Status ${res.status}): ${rawText.substring(0, 80)}...`);
+        }
+
         if (res.ok && data.success) {
           currentUser = data.user;
           loadSavedState();
@@ -2571,7 +2583,8 @@ function initializeGlobalApp() {
           triggerAuthShake(card, banner, data.error || 'Registration failed.');
         }
       } catch (err) {
-        triggerAuthShake(card, banner, 'Network connection failed. Try again.');
+        console.error('[Signup Error]', err);
+        triggerAuthShake(card, banner, err.message || 'Network connection failed. Please check your internet and try again.');
       } finally {
         btnSignupSubmit.disabled = false;
         btnSignupSubmit.innerHTML = 'Sign Up <i class="fa-solid fa-arrow-right"></i>';
@@ -2598,13 +2611,21 @@ function initializeGlobalApp() {
         btnLoginSubmit.disabled = true;
         btnLoginSubmit.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Authenticating...';
 
-        const res = await fetch('/api/auth/login', {
+        const res = await fetch(getApiUrl('/api/auth/login'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ emailOrUsername, password })
         });
 
-        const data = await res.json();
+        let data;
+        const contentType = res.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          data = await res.json();
+        } else {
+          const rawText = await res.text();
+          throw new Error(`Server returned an invalid response (Status ${res.status}): ${rawText.substring(0, 80)}...`);
+        }
+
         if (res.ok && data.success) {
           currentUser = data.user;
           loadSavedState();
@@ -2643,7 +2664,8 @@ function initializeGlobalApp() {
           triggerAuthShake(card, banner, data.error || 'Incorrect email or password.');
         }
       } catch (err) {
-        triggerAuthShake(card, banner, 'Network connection failed. Try again.');
+        console.error('[Login Error]', err);
+        triggerAuthShake(card, banner, err.message || 'Network connection failed. Please check your internet and try again.');
       } finally {
         btnLoginSubmit.disabled = false;
         btnLoginSubmit.innerHTML = 'Log In <i class="fa-solid fa-arrow-right"></i>';

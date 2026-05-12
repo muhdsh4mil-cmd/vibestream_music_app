@@ -5,6 +5,7 @@ const path = require('path');
 const rateLimit = require('express-rate-limit');
 
 const app = express();
+app.set('trust proxy', 1); // Trust first proxy (Render, Vercel, etc.)
 const PORT = process.env.PORT || 3000;
 
 // ── CORS: Only allow requests from your own production domain ─────────────────
