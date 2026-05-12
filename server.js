@@ -10,7 +10,9 @@ const PORT = process.env.PORT || 3000;
 // ── CORS: Only allow requests from your own production domain ─────────────────
 // In production, set ALLOWED_ORIGIN env var to your Render/domain URL.
 // Falls back to localhost for local development.
-const allowedOrigin = process.env.ALLOWED_ORIGIN || 'http://localhost:3000';
+const rawAllowedOrigin = process.env.ALLOWED_ORIGIN || 'http://localhost:3000';
+// Clean trailing slashes to prevent comparison mismatch
+const allowedOrigin = rawAllowedOrigin.replace(/\/$/, '');
 
 const localOrigins = ['http://localhost:3000', 'http://127.0.0.1:3000'];
 
@@ -18,9 +20,29 @@ app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (same-origin, mobile apps, Postman, admin portal)
     if (!origin) return callback(null, true);
-    if (origin === allowedOrigin || localOrigins.includes(origin) || origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
+    
+    const cleanOrigin = origin.replace(/\/$/, '');
+    
+    // 1. Check direct matches or localhost development
+    if (
+      cleanOrigin === allowedOrigin || 
+      localOrigins.includes(cleanOrigin) || 
+      cleanOrigin.startsWith('http://localhost:') || 
+      cleanOrigin.startsWith('http://127.0.0.1:')
+    ) {
       return callback(null, true);
     }
+    
+    // 2. Automatically trust any render subdomains (deployment safety check!)
+    if (cleanOrigin.endsWith('.onrender.com')) {
+      return callback(null, true);
+    }
+
+    // 3. Automatically trust custom portfolio or vibestream domains
+    if (cleanOrigin.endsWith('vibestream.online') || cleanOrigin.endsWith('vercel.app')) {
+      return callback(null, true);
+    }
+
     return callback(new Error(`CORS: Origin '${origin}' is not allowed.`), false);
   },
   methods: ['GET', 'POST', 'DELETE'],
