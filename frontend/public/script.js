@@ -3025,9 +3025,18 @@ function initAdblockProofPlayer() {
       
       const origin = window.location.origin;
       const embedUrl = `https://www.youtube.com/embed/${id}?enablejsapi=1&autoplay=1&controls=0&modestbranding=1&rel=0&playsinline=1&origin=${encodeURIComponent(origin)}`;
-      iframe.src = embedUrl;
       
-      // Transition to playing state after brief buffer
+      const isCleanLoad = iframe.src === 'about:blank' || !iframe.src;
+      if (isCleanLoad) {
+        iframe.src = embedUrl;
+      } else {
+        if (iframe.contentWindow) {
+          iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'loadVideoById', args: [id, 0] }), '*');
+          iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo' }), '*');
+        }
+      }
+      
+      // Transition to playing state after brief buffer (simulated for UI responsiveness, but backed by real message events if available)
       setTimeout(() => {
         cachedState = 1; // Playing
         playStartWallTime = Date.now();
@@ -3090,11 +3099,11 @@ function initAdblockProofPlayer() {
   }
   console.log('[Melody API] Dynamic YouTube Iframe API Script injected.');
 
-  // If official YouTube API hasn't loaded within 1.5s, boot the iframe booster immediately
+  // If official YouTube API hasn't loaded within 4s, boot the iframe booster immediately
   setTimeout(() => {
     if (!isPlayerReady) {
       console.warn('[Melody Player] YouTube API blocked/slow — activating iframe booster.');
       initAdblockProofPlayer();
     }
-  }, 1500);
+  }, 4000);
 })();
